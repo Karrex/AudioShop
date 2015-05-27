@@ -77,4 +77,18 @@ public class Audio {
     public void setGenre(Genre genre) {
         this.genre = genre;
     }
+
+    @Override
+    public String toString() {
+        return "Audio{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", authorId=" + authorId +
+                ", duration=" + duration +
+                ", price=" + price +
+                ", genreId=" + genreId +
+                ", author=" + author +
+                ", genre=" + genre +
+                '}';
+    }
 }
