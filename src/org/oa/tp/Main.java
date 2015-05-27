@@ -13,7 +13,6 @@ public class Main {
         Audio audio = new Audio(1, "Hello", 25, 4, 5, 34);
         daoFacade.getAudioDAO().add(audio);
         daoFacade.getAudioDAO().saveAll();
-        daoFacade.getAudioDAO().delete(1);
         List<Audio> audios = daoFacade.getAudioDAO().loadAll();
         System.out.println(audios);
     }

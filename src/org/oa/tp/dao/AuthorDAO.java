@@ -52,7 +52,13 @@ class AuthorDAO implements AbstractDAO<Author> {
 
     @Override
     public boolean update(Author changed) {
-        return false;
+        Author author = findById(changed.getId());
+        if (author == null) {
+            return false;
+        }
+        author.setAge(changed.getAge());
+        author.setGender(changed.getGender());
+        return true;
     }
 
     @Override
