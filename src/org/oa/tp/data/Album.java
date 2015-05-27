@@ -51,4 +51,13 @@ public class Album {
     public int hashCode() {
         return id;
     }
+
+    @Override
+    public String toString() {
+        return "Album{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", year=" + year +
+                '}';
+    }
 }
