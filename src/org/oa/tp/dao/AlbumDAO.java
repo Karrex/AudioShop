@@ -1,83 +1,134 @@
 package org.oa.tp.dao;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import org.oa.tp.data.Album;
 
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.lang.reflect.Type;
+import java.sql.*;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 class AlbumDAO implements AbstractDAO<Album> {
 
-    private static final String PATH = "album.txt";
+    private Statement statement;
+    private Connection connection;
 
-    private Set<Album> items = new HashSet<>();
-
-    @Override
-    public List<Album> loadAll() {
-        items.clear();
-        Gson gson = new Gson();
-
-        try (FileReader fileReader = new FileReader(PATH)) {
-            Type collectionType = new TypeToken<List<Album>>() {
-            }.getType();
-            List<Album> albums = gson.fromJson(fileReader, collectionType);
-            items.addAll(albums);
-        } catch (IOException e) {
+    public AlbumDAO(Statement statement, Connection connection) {
+        this.connection = connection;
+        this.statement = statement;
+        try {
+            statement.execute("CREATE TABLE IF NOT EXISTS album ("
+                    + "id INTEGER PRIMARY KEY AUTOINCREMENT ,"
+                    + "name TEXT NOT NULL,"
+                    + "year INT NOT NULL);");
+        } catch (SQLException e) {
             e.printStackTrace();
         }
-        return new ArrayList<>(items);
     }
 
     @Override
-    public Album findById(long id) {
-        for (Album album : items) {
-            if (id == album.getId()) {
-                return album;
+    public List<Album> loadAll() {
+        List<Album> albums = new ArrayList<>();
+
+        try {
+            ResultSet resultSet = statement
+                    .executeQuery("SELECT * FROM album;");
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                String name = resultSet.getString("name");
+                int year = resultSet.getInt("year");
+                albums.add(new Album(id, name, year));
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return null;
+
+        return albums;
+    }
+
+    @Override
+    public Album findById(long objectId) {
+        Album album = null;
+        try {
+            ResultSet resultSet = statement
+                    .executeQuery("SELECT * FROM album WHERE id=" + objectId + ";");
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                String name = resultSet.getString("name");
+                int year = resultSet.getInt("year");
+                album = new Album(id, name, year);
+                break;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return album;
     }
 
     @Override
     public boolean delete(long id) {
-        Album album = findById(id);
-        if (album == null) {
+
+        try {
+            statement.executeUpdate("DELETE FROM album WHERE id=" + id + ";");
+        } catch (SQLException e) {
+            e.printStackTrace();
             return false;
         }
-        return items.remove(album);
+        return true;
+
     }
 
     @Override
     public boolean update(Album changed) {
-        Album album = findById(changed.getId());
-        if (album == null) {
+        try {
+            statement.executeUpdate("UPDATE album SET name='"
+                    + changed.getName() + "',year='" + changed.getYear()
+                    + "' WHERE id=" + changed.getId() + ";");
+        } catch (SQLException e) {
+            e.printStackTrace();
             return false;
         }
-        album.setName(changed.getName());
-        album.setYear(changed.getYear());
         return true;
     }
 
     @Override
     public boolean add(Album item) {
-        return items.add(item);
+        try {
+            statement.executeUpdate("INSERT INTO album (name, year)"
+                    + " VALUES ('" + item.getName() + "','" + item.getYear()
+                    + "')");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     @Override
-    public boolean saveAll() {
-        Gson gson = new Gson();
-        try (FileWriter fileWriter = new FileWriter(PATH)) {
-            gson.toJson(items, fileWriter);
-            return true;
-        } catch (IOException e) {
+    public boolean addAll(Collection<Album> collection) {
+
+        String sqlQuery = "INSERT INTO album " + " (name, year)"
+                + " VALUES ( ? , ? )";
+
+        try {
+            connection.setAutoCommit(false);
+            PreparedStatement statement = connection.prepareStatement(sqlQuery);
+            for (Album album : collection) {
+                statement.setString(1, album.getName());
+                statement.setInt(2, album.getYear());
+                statement.executeUpdate();
+            }
+
+            connection.commit();
+            connection.setAutoCommit(true);
+            statement.close();
+
+        } catch (SQLException e) {
             e.printStackTrace();
+            try {
+                connection.rollback();
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+            }
         }
         return false;
     }

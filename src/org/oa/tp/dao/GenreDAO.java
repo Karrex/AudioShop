@@ -5,13 +5,9 @@ import com.google.gson.reflect.TypeToken;
 import org.oa.tp.data.Genre;
 
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 class GenreDAO implements AbstractDAO<Genre> {
 
@@ -65,14 +61,7 @@ class GenreDAO implements AbstractDAO<Genre> {
     }
 
     @Override
-    public boolean saveAll() {
-        Gson gson = new Gson();
-        try (FileWriter fileWriter = new FileWriter(PATH)) {
-            gson.toJson(items, fileWriter);
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public boolean addAll(Collection<Genre> collection) {
         return false;
     }
 }

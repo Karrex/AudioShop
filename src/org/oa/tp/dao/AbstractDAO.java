@@ -1,5 +1,6 @@
 package org.oa.tp.dao;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface AbstractDAO<T> {
@@ -13,5 +14,5 @@ public interface AbstractDAO<T> {
 
     boolean add(T item);
 
-    boolean saveAll();
+    boolean addAll(Collection<T> collection);
 }

@@ -22,6 +22,14 @@ public class Author {
         this.gender = gender;
     }
 
+    public Author(String firstName, String lastName, int age, String gender) {
+        id = 0;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.age = age;
+        this.gender = gender;
+    }
+
     public long getId() {
         return id;
     }

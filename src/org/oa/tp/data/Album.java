@@ -16,6 +16,12 @@ public class Album {
         this.year = year;
     }
 
+    public Album(String name, int year) {
+        id = 0;
+        this.name = name;
+        this.year = year;
+    }
+
     public int getId() {
         return id;
     }
@@ -54,10 +60,6 @@ public class Album {
 
     @Override
     public String toString() {
-        return "Album{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", year=" + year +
-                '}';
+        return "Album{" + "id=" + id + ", name='" + name + '\'' + ", year=" + year + '}';
     }
 }

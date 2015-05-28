@@ -1,47 +1,72 @@
 package org.oa.tp.dao;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import org.oa.tp.data.Author;
 
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.*;
 
 class AuthorDAO implements AbstractDAO<Author> {
 
     private static final String PATH = "author.txt";
     private Set<Author> items = new HashSet<>();
 
-    @Override
-    public List<Author> loadAll() {
-        items.clear();
-        Gson gson = new Gson();
-        try (FileReader fileReader = new FileReader(PATH)) {
-            Type CollectionType = new TypeToken<List<Author>>() {
+    private Connection connection;
+    private Statement statement;
 
-            }.getType();
-            List<Author> authors = gson.fromJson(fileReader, CollectionType);
-            items.addAll(authors);
-        } catch (IOException e) {
+    public AuthorDAO(Statement statement, Connection connection) {
+        this.statement = statement;
+        this.connection = connection;
+        try {
+            statement.execute("CREATE TABLE IF NOT EXISTS author " +
+                    "(id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "firstName TEXT NOT NULL, " +
+                    "lastName TEXT NOT NULL, " +
+                    "age INTEGER NOT NULL, " +
+                    "gender TEXT NOT NULL); ");
+        } catch (SQLException e) {
             e.printStackTrace();
         }
-        return new ArrayList<>(items);
     }
 
     @Override
-    public Author findById(long id) {
-        for (Author author : items) {
-            if (id == author.getId()) {
-                return author;
+    public List<Author> loadAll() {
+        List<Author> authors = new ArrayList<>();
+
+        try {
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM author");
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                String firstName = resultSet.getString("firstName");
+                String lastName = resultSet.getString("lastName");
+                int age = resultSet.getInt("age");
+                String gender = resultSet.getString("gender");
+                Author author = new Author(id, firstName, lastName, age, gender);
+                authors.add(author);
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return null;
+        return authors;
+    }
+
+    @Override
+    public Author findById(long objectId) {
+        Author author = null;
+        try {
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM author WHERE id = " + objectId + ";");
+            int id = resultSet.getInt("id");
+            String firstName = resultSet.getString("firstName");
+            String lastName = resultSet.getString("lastName");
+            int age = resultSet.getInt("age");
+            String gender = resultSet.getString("gender");
+            author = new Author(id, firstName, lastName, age, gender);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return author;
     }
 
     @Override
@@ -63,18 +88,20 @@ class AuthorDAO implements AbstractDAO<Author> {
 
     @Override
     public boolean add(Author item) {
-        return items.add(item);
+        try {
+            statement.executeUpdate("INSERT INTO author (firstName, lastName, age, gender)"
+                    + " VALUES ('" + item.getFirstName() + "','" + item.getLastName()
+                    + "','" + item.getAge() + "','" + item.getGender()
+                    + "')");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     @Override
-    public boolean saveAll() {
-        Gson gson = new Gson();
-        try (FileWriter fileWriter = new FileWriter(PATH)) {
-            gson.toJson(items, fileWriter);
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public boolean addAll(Collection<Author> collection) {
         return false;
     }
 }
