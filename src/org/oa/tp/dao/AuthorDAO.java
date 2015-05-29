@@ -2,10 +2,7 @@ package org.oa.tp.dao;
 
 import org.oa.tp.data.Author;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.*;
 
 class AuthorDAO implements AbstractDAO<Author> {
@@ -25,7 +22,7 @@ class AuthorDAO implements AbstractDAO<Author> {
                     "firstName TEXT NOT NULL, " +
                     "lastName TEXT NOT NULL, " +
                     "age INTEGER NOT NULL, " +
-                    "gender TEXT NOT NULL); ");
+                    "gender TEXT NOT NULL);");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -71,18 +68,28 @@ class AuthorDAO implements AbstractDAO<Author> {
 
     @Override
     public boolean delete(long id) {
-        Author author = findById(id);
-        return items.remove(author);
+        try {
+            statement.executeUpdate("DELETE FROM author WHERE id = " + id + ";");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     @Override
     public boolean update(Author changed) {
-        Author author = findById(changed.getId());
-        if (author == null) {
+        try {
+            statement.executeUpdate("update author set"
+                    + " firstName='" + changed.getFirstName()
+                    + "',lastName='" + changed.getLastName()
+                    + "',age='" + changed.getAge()
+                    + "',gender='" + changed.getGender()
+                    + "' WHERE id=" + changed.getId() + ";");
+        } catch (SQLException e) {
+            e.printStackTrace();
             return false;
         }
-        author.setAge(changed.getAge());
-        author.setGender(changed.getGender());
         return true;
     }
 
@@ -102,6 +109,28 @@ class AuthorDAO implements AbstractDAO<Author> {
 
     @Override
     public boolean addAll(Collection<Author> collection) {
-        return false;
+        String sqlQuery = "insert into author (firstName, lastName, age, gender)"
+                + "values ( ? , ? , ? , ?)";
+        try {
+            connection.setAutoCommit(false);
+            PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery);
+            for (Author author : collection) {
+                preparedStatement.setString(1, author.getFirstName());
+                preparedStatement.setString(2, author.getLastName());
+                preparedStatement.setInt(3, author.getAge());
+                preparedStatement.setString(4, author.getGender());
+            }
+            connection.commit();
+            connection.setAutoCommit(true);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            try {
+                connection.rollback();
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+            }
+            return false;
+        }
+        return true;
     }
 }

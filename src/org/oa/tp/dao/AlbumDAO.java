@@ -105,10 +105,8 @@ class AlbumDAO implements AbstractDAO<Album> {
 
     @Override
     public boolean addAll(Collection<Album> collection) {
-
-        String sqlQuery = "INSERT INTO album " + " (name, year)"
+        String sqlQuery = "INSERT INTO album (name, year)"
                 + " VALUES ( ? , ? )";
-
         try {
             connection.setAutoCommit(false);
             PreparedStatement statement = connection.prepareStatement(sqlQuery);

@@ -30,6 +30,18 @@ public class Main {
         }
         System.out.println("~~~~~~~~~~");
         System.out.println(daoFacade.getAuthorDAO().findById(5));
+        daoFacade.getAuthorDAO().delete(6);
+        System.out.println("~~~~~~~~~~");
+        daoFacade.getAuthorDAO().update(new Author(5, "Update", "Update", 100, "MALE"));
+        List<Author> authors1 = daoFacade.getAuthorDAO().loadAll();
+        for (Author author : authors1) {
+            System.out.println(author);
+        }
+        System.out.println("~~~~~~~~~~~");
+        daoFacade.getAuthorDAO().addAll(authors1);
+        for (Author author : authors1) {
+            System.out.println(author);
+        }
         daoFacade.closeConnection();
     }
 }
