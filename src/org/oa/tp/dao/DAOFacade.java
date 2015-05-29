@@ -14,7 +14,7 @@ public class DAOFacade {
     private final AlbumDAO albumDAO;
     private final AudioDAO audioDAO = new AudioDAO();
     private final AuthorDAO authorDAO;
-    private final GenreDAO genreDAO = new GenreDAO();
+    private final GenreDAO genreDAO;
 
     private Statement statement;
     private Connection connection;
@@ -37,6 +37,7 @@ public class DAOFacade {
 
         albumDAO = new AlbumDAO(statement, connection);
         authorDAO = new AuthorDAO(statement, connection);
+        genreDAO = new GenreDAO(statement, connection);
     }
 
     public AbstractDAO<Album> getAlbumDAO() {

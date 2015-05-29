@@ -1,67 +1,114 @@
 package org.oa.tp.dao;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import org.oa.tp.data.Genre;
 
-import java.io.FileReader;
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.*;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 class GenreDAO implements AbstractDAO<Genre> {
 
-    private static final String PATH = "genre.txt";
-    private Set<Genre> items = new HashSet<>();
+    private Connection connection;
+    private Statement statement;
 
-    @Override
-    public List<Genre> loadAll() {
-        items.clear();
-        Gson gson = new Gson();
-        try (FileReader fileReader = new FileReader(PATH)) {
-            Type collectionType = new TypeToken<List<Genre>>() {
-            }.getType();
-            List<Genre> genre = gson.fromJson(fileReader, collectionType);
-            items.addAll(genre);
-        } catch (IOException e) {
+    public GenreDAO(Statement statement, Connection connection) {
+        this.statement = statement;
+        this.connection = connection;
+        try {
+            statement.execute("create table if not exists genre " +
+                    "(id integer primary key autoincrement, " +
+                    "name text not null);");
+        } catch (SQLException e) {
             e.printStackTrace();
         }
-        return new ArrayList<>(items);
     }
 
     @Override
-    public Genre findById(long id) {
-        for (Genre genre : items) {
-            if (id == genre.getId()) {
-                return genre;
+    public List<Genre> loadAll() {
+        List<Genre> genres = new ArrayList<>();
+        try {
+            ResultSet resultSet = statement.executeQuery("select * from genre");
+            while (resultSet.next()) {
+                int id = resultSet.getInt("id");
+                String name = resultSet.getString("name");
+                Genre genre = new Genre(id, name);
+                genres.add(genre);
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return null;
+        return genres;
+    }
+
+    @Override
+    public Genre findById(long objectId) {
+        Genre genre = null;
+        try {
+            ResultSet resultSet = statement.executeQuery("select * from genre where id = " + objectId);
+            int id = resultSet.getInt("id");
+            String name = resultSet.getString("name");
+            genre = new Genre(id, name);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return genre;
     }
 
     @Override
     public boolean delete(long id) {
-        Genre genre = findById(id);
-        return items.remove(genre);
+        try {
+            statement.executeUpdate("DELETE FROM genre where id = " + id + ";");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     @Override
     public boolean update(Genre changed) {
-        Genre genre = findById(changed.getId());
-        if (genre == null) {
+        try {
+            statement.executeUpdate("update genre set "
+                    + "name='" + changed.getName()
+                    + "' where id = " + changed.getId() + ";");
+        } catch (SQLException e) {
+            e.printStackTrace();
             return false;
         }
-        genre.setName(changed.getName());
         return true;
     }
 
     @Override
     public boolean add(Genre item) {
-        return items.add(item);
+        try {
+            statement.executeUpdate("insert into genre (name) values ('" + item.getName() + "')");
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     @Override
     public boolean addAll(Collection<Genre> collection) {
-        return false;
+        try{
+            connection.setAutoCommit(false);
+            PreparedStatement preparedStatement = connection.prepareStatement("insert into genre (name) values (?)");
+            for (Genre genre : collection){
+                preparedStatement.setString(1, genre.getName());
+            }
+            connection.commit();
+            connection.setAutoCommit(true);
+        } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+            }
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 }

@@ -13,6 +13,11 @@ public class Genre {
         this.name = name;
     }
 
+    public Genre(String name){
+        id = 0;
+        this.name = name;
+    }
+
     public long getId() {
         return id;
     }
