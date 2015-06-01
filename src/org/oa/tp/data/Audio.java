@@ -30,6 +30,15 @@ public class Audio {
         this.genreId = genreId;
     }
 
+    public Audio(String name, long authorId, int duration, int price, long genreId) {
+        id = 0;
+        this.name = name;
+        this.authorId = authorId;
+        this.duration = duration;
+        this.price = price;
+        this.genreId = genreId;
+    }
+
     public long getId() {
         return id;
     }
